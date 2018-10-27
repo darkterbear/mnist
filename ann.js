@@ -3,6 +3,19 @@ const utils = require('./utils')
 const dS = utils.dSigmoid
 const dC = utils.dCost
 
+const updateSingle = (ex, w, b, eta, empty) => {
+	// feedforward
+	const correct = Object.keys(ex)[0]
+	const output = feedForward(w, b, ex[correct])
+
+	// determine expected
+	var expected = empty.slice()
+	expected[correct] = 1
+
+	// backprop and nudge
+	backprop(output, expected, w, b, b.length - 1, eta)
+}
+
 const backprop = (a, e, weights, biases, l, eta) => {
 	var w = weights[l]
 	var b = biases[l]
@@ -69,6 +82,20 @@ const calcCost = (v1, v2) => {
 	return sum
 }
 
+const saveANN = (w, b, name) => {
+	fs.writeFile(
+		__dirname + '/models/' + name + '.json',
+		JSON.stringify({ weights: w, biases: b }),
+		function(err) {
+			if (err) {
+				return console.log(err)
+			}
+
+			console.log('Model Saved')
+		}
+	)
+}
+
 const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
 	var eta = 0.08
@@ -79,15 +106,7 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 
 		// train
 		utils.shuffle(trainingSet)
-		trainingSet.forEach(ex => {
-			const correct = Object.keys(ex)[0]
-			const output = feedForward(w, b, ex[correct])
-
-			var expected = emptyOut.slice()
-			expected[correct] = 1
-
-			backprop(output, expected, w, b, b.length - 1, eta)
-		})
+		trainingSet.forEach(ex => updateSingle(ex, w, b, eta, emptyOut))
 
 		const end = Date.now()
 
@@ -110,6 +129,11 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 				testResult.avgCost.toFixed(5) +
 				'\n'
 		)
+
+		// save if good
+		if (testResult.correct > 9300) {
+			saveANN(w, b, testResult.correct + '-' + testResult.avgCost)
+		}
 	}
 }
 
@@ -182,17 +206,7 @@ const ANN = layers => {
 			return testANN(this.weights, this.biases, testingSet)
 		},
 		save: function(name) {
-			fs.writeFile(
-				__dirname + '/models/' + name + '.json',
-				JSON.stringify(this),
-				function(err) {
-					if (err) {
-						return console.log(err)
-					}
-
-					console.log('Model Saved')
-				}
-			)
+			saveANN(this.weights, this.biases, name)
 		},
 		open: function(filename) {
 			const raw = fs.readFileSync(filename, 'utf8')
