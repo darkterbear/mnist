@@ -38,15 +38,14 @@ const calcCost = (v1, v2) => {
 }
 
 const trainANN = (w, b, trainingSet, eta) => {
+	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
+
 	trainingSet.forEach(ex => {
 		const correct = Object.keys(ex)[0]
 		const output = feedForward(w, b, ex[correct])
 
 		// create the expected output
-		var expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		// for (var i = 0; i < b[b.length - 1].length; i++) {
-		// 	expected.push(0)
-		// }
+		var expected = emptyOut.slice()
 		expected[correct] = 1
 
 		// backprop to nudge weights and biases
@@ -54,28 +53,27 @@ const trainANN = (w, b, trainingSet, eta) => {
 	})
 }
 
-const testANN = (weights, biases, testingSet) => {
-	console.log('Testing...')
-	const numOutputs = biases[biases.length - 1].length
+const testANN = (w, b, testingSet) => {
+	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
 	var totalCost = 0
-	var correct = 0
-	testingSet.forEach((ex, index) => {
-		const actual = Object.keys(ex)[0]
+	var numCorrect = 0
+
+	testingSet.forEach(ex => {
+		const correct = Object.keys(ex)[0]
 
 		// get the activations after forward propagation
-		const output = feedForward(weights, biases, ex[actual])
+		const output = feedForward(w, b, ex[correct])
 
 		// get the result
 		const result = maxActivation(output[output.length - 1])
-		if (actual == result) correct++
+		if (correct == result) numCorrect++
 
 		// create the expected output activations
-		const actualActivations = []
-		for (var i = 0; i < numOutputs; i++) actualActivations[i] = 0
-		actualActivations[actual] = 1
+		var expected = emptyOut.slice()
+		expected[correct] = 1
 
 		// calculate cost
-		const cost = calcCost(actualActivations, output[output.length - 1])
+		const cost = calcCost(expected, output[output.length - 1])
 
 		totalCost += cost
 	})
@@ -83,7 +81,7 @@ const testANN = (weights, biases, testingSet) => {
 	// average the cost
 	return {
 		avgCost: totalCost / testingSet.length,
-		correct: correct
+		correct: numCorrect
 	}
 }
 
