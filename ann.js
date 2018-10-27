@@ -4,11 +4,11 @@ const dS = utils.dSigmoid
 const dC = utils.dCost
 
 const backprop = (a, e, weights, biases, l, eta) => {
-	var w = weights[l - 1]
-	var b = biases[l - 1]
+	var w = weights[l]
+	var b = biases[l]
 
-	var rA = a[l]
-	var lA = a[l - 1]
+	var rA = a[l + 1]
+	var lA = a[l]
 
 	w.forEach((wC, k) => {
 		wC.forEach((_, j) => {
@@ -32,7 +32,7 @@ const backprop = (a, e, weights, biases, l, eta) => {
 		nextA[k] -= g * eta
 	})
 
-	if (l > 1) backprop(a, nextA, weights, biases, l - 1, eta)
+	if (l > 0) backprop(a, nextA, weights, biases, l - 1, eta)
 }
 
 const feedForward = (w, b, i) => {
@@ -86,7 +86,7 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 			var expected = emptyOut.slice()
 			expected[correct] = 1
 
-			backprop(output, expected, w, b, b.length, eta)
+			backprop(output, expected, w, b, b.length - 1, eta)
 		})
 
 		const end = Date.now()
