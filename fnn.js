@@ -22,7 +22,14 @@ const backprop = (i, w, b, gradW, gradB) => {
 	// feedforward
 	const result = feedForward(input, w, b)
 
-	// 
+	// expected
+	const expectedActivation = Array.from(
+		{ length: b[b.length - 1].length },
+		() => 0
+	)
+	expectedActivation[expected] = 1
+
+	// backwards-pass
 }
 
 const updateMiniBatch = (mb, eta, w, b) => {
