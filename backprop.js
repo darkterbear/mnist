@@ -1,18 +1,8 @@
 const utils = require('./utils')
 
-// TODO: don't use these, slows down by about a second by repeated bloating callstack
 const dS = utils.dSigmoid
 const dC = utils.dCost
 
-/**
- *
- * @param {Matrix} a Activations of the entire neural network
- * @param {Vector} e Expected activations of this current layer
- * @param {[Matrix]} weights Weights of the network
- * @param {[Vector]} biases Biases of the network
- * @param {Number} l Layer of the network
- * @param {Number} eta Learning rate
- */
 const backprop = (a, e, weights, biases, l, eta) => {
 	var w = weights[l - 1]
 	var b = biases[l - 1]
