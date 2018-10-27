@@ -37,20 +37,48 @@ const calcCost = (v1, v2) => {
 	return sum
 }
 
-const trainANN = (w, b, trainingSet, eta) => {
+const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
+	var eta = 0.08
 
-	trainingSet.forEach(ex => {
-		const correct = Object.keys(ex)[0]
-		const output = feedForward(w, b, ex[correct])
+	for (var i = 1; i <= epochs; i++) {
+		const start = Date.now()
+		console.log('Epoch ' + i + '...')
 
-		// create the expected output
-		var expected = emptyOut.slice()
-		expected[correct] = 1
+		// train
+		utils.shuffle(trainingSet)
+		trainingSet.forEach(ex => {
+			const correct = Object.keys(ex)[0]
+			const output = feedForward(w, b, ex[correct])
 
-		// backprop to nudge weights and biases
-		backprop(output, expected, w, b, b.length, eta)
-	})
+			var expected = emptyOut.slice()
+			expected[correct] = 1
+
+			backprop(output, expected, w, b, b.length, eta)
+		})
+
+		const end = Date.now()
+
+		// test
+		utils.shuffle(testingSet)
+		const testResult = testANN(w, b, testingSet)
+
+		// update learnrate
+		eta = testResult.avgCost / 3
+
+		// log
+		console.log(
+			'Epoch ' +
+				i +
+				': ' +
+				((end - start) / 1000).toFixed(2) +
+				's\t' +
+				((testResult.correct / testingSet.length) * 100).toFixed(2) +
+				'%\t' +
+				testResult.avgCost.toFixed(5) +
+				'\n'
+		)
+	}
 }
 
 const testANN = (w, b, testingSet) => {
@@ -60,32 +88,24 @@ const testANN = (w, b, testingSet) => {
 
 	testingSet.forEach(ex => {
 		const correct = Object.keys(ex)[0]
-
-		// get the activations after forward propagation
 		const output = feedForward(w, b, ex[correct])
 
-		// get the result
 		const result = maxActivation(output[output.length - 1])
 		if (correct == result) numCorrect++
 
-		// create the expected output activations
 		var expected = emptyOut.slice()
 		expected[correct] = 1
-
-		// calculate cost
 		const cost = calcCost(expected, output[output.length - 1])
 
 		totalCost += cost
 	})
 
-	// average the cost
 	return {
 		avgCost: totalCost / testingSet.length,
 		correct: numCorrect
 	}
 }
 
-const spread = 1.125
 const ANN = layers => {
 	if (!layers) layers = []
 	var weights = []
@@ -100,13 +120,13 @@ const ANN = layers => {
 		for (var c = 0; c < layers[i]; c++) {
 			var column = []
 			for (var r = 0; r < layers[i + 1]; r++) {
-				column.push(Math.random() * spread - spread / 2)
+				column.push(utils.random())
 			}
 			weightMatrix.push(column)
 		}
 
 		for (var j = 0; j < layers[i + 1]; j++) {
-			biasVector.push(Math.random() * spread - spread / 2)
+			biasVector.push(utils.random())
 		}
 
 		weights.push(weightMatrix)
@@ -116,29 +136,15 @@ const ANN = layers => {
 	return {
 		weights: weights,
 		biases: biases,
-		calculate: function(activations) {
-			return feedForward(this.weights, this.biases, activations)
+		feedForward: function(a) {
+			return feedForward(this.weights, this.biases, a)
+		},
+		calculate: function(a) {
+			const res = feedForward(this.weights, this.biases, a)
+			return maxActivation(res[res.length - 1])
 		},
 		train: function(trainingSet, epochs, testingSet) {
-			var learnRate = 0.08
-			for (var i = 0; i < epochs; i++) {
-				var now = Date.now()
-				console.log('Epoch ' + (i + 1) + '...')
-				utils.shuffle(trainingSet)
-				trainANN(this.weights, this.biases, trainingSet, learnRate)
-				console.log(
-					'Epoch ' + (i + 1) + ' complete: ' + (Date.now() - now) / 1000 + 's'
-				)
-
-				utils.shuffle(testingSet)
-				const testResult = testANN(this.weights, this.biases, testingSet)
-				console.log(testResult)
-
-				if (testResult.correct > 9300)
-					this.save(testResult.correct + '-' + testResult.avgCost)
-
-				learnRate = testResult.avgCost / 3
-			}
+			trainANN(this.weights, this.biases, trainingSet, testingSet, epochs)
 		},
 		test: function(testingSet) {
 			return testANN(this.weights, this.biases, testingSet)

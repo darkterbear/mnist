@@ -1,3 +1,8 @@
+const spread = 1.125
+const random = () => {
+	return Math.random() * spread - spread / 2
+}
+
 const shuffle = a => {
 	for (let i = a.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1))
@@ -22,5 +27,6 @@ module.exports = {
 	shuffle,
 	sigmoid,
 	dCost,
-	dSigmoid
+	dSigmoid,
+	random
 }
