@@ -18,7 +18,7 @@ const parseFile = (images, labels, numImages) => {
 
 		for (var x = 0; x < 28; x++) {
 			for (var y = 0; y < 28; y++) {
-				pixels.push(dataFileBuffer[image * 28 * 28 + (x + y * 28) + 15])
+				pixels.push(dataFileBuffer[image * 28 * 28 + (x + y * 28) + 15] / 255)
 			}
 		}
 

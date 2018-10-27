@@ -1,9 +1,9 @@
 const gaussianRand = () => {
-	return (
-		Array.from({ length: 4 }, () => Math.random() - 0.5).reduce(
-			(a, c) => a + c
-		) / 2
-	)
+	var u = 0,
+		v = 0
+	while (u === 0) u = Math.random() //Converting [0,1) to (0,1)
+	while (v === 0) v = Math.random()
+	return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
 }
 
 const shuffle = a => {
@@ -30,15 +30,22 @@ const reluPrime = z => {
 }
 
 const vAdd = (v1, v2) => {
-	return Array.from({ length: v1.length }, (_, i) => v1[i] + v2[i])
+	var r = []
+	for (var i = 0; i < v1.length; i++) r.push(v1[i] + v2[i])
+	return r
 }
 
 const mVMult = (m, v) => {
-	return Array.from({ length: m[0].length }, (_, r) => {
-		return Array.from({ length: v.length }, (_, c) => m[c][r] * v[c]).reduce(
-			(a, c) => a + c
-		)
-	})
+	var res = []
+
+	for (var r = 0; r < m[0].length; r++) {
+		var s = 0
+		for (var c = 0; c < v.length; c++) {
+			s += m[c][r] * v[c]
+		}
+		res.push(s)
+	}
+	return res
 }
 
 module.exports = {
