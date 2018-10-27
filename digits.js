@@ -1,11 +1,11 @@
-const CNN = require('./cnn')
+const ANN = require('./ann')
 const MNIST = require('./mnist/mnist')
 
-var nn = CNN()
+var nn = ANN()
 
 // nn.open(__dirname + '/models/8797-0.0774.json')
 
-var nn = CNN([784, 16, 16, 10])
+var nn = ANN([784, 16, 16, 10])
 
 nn.train(MNIST.trainingSet, 200, MNIST.testSet)
 

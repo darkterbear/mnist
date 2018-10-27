@@ -4,10 +4,6 @@ const sigmoid = x => {
 	return 1 / (1 + Math.E ** -x)
 }
 
-const relu = x => {
-	return x >= 0 ? x : 0
-}
-
 function shuffle(a) {
 	for (let i = a.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1))
@@ -25,7 +21,7 @@ const backprop = require('./backprop')
  * @param {Vector} activations Input activations
  * @param {Number} currentLayer Forward propogation layer progress
  */
-const runCNN = (weights, biases, activations, currentLayer = 0) => {
+const runANN = (weights, biases, activations, currentLayer = 0) => {
 	// if this is the output layer, return the activations
 	if (currentLayer >= weights.length) {
 		return [activations]
@@ -46,7 +42,7 @@ const runCNN = (weights, biases, activations, currentLayer = 0) => {
 	}
 
 	// recursively propogate forward
-	const feedForward = runCNN(weights, biases, newActivations, currentLayer + 1)
+	const feedForward = runANN(weights, biases, newActivations, currentLayer + 1)
 
 	// combine the result activations
 	const cumulativeActivations = [activations]
@@ -96,10 +92,10 @@ const calcCost = (v1, v2) => {
  * @param {[Vector]} biases NN biases
  * @param {[Test]} trainingSet Tests used for training
  */
-const trainCNN = (weights, biases, trainingSet, learnRate) => {
+const trainANN = (weights, biases, trainingSet, learnRate) => {
 	trainingSet.forEach((ex, index) => {
 		const actual = Object.keys(ex)[0]
-		const output = runCNN(weights, biases, ex[actual])
+		const output = runANN(weights, biases, ex[actual])
 
 		// create the expected output
 		var expected = []
@@ -119,7 +115,7 @@ const trainCNN = (weights, biases, trainingSet, learnRate) => {
  * @param {[Vector]} biases Array of bias vectors
  * @param {[Test]} testingSet Array of tests
  */
-const testCNN = (weights, biases, testingSet) => {
+const testANN = (weights, biases, testingSet) => {
 	console.log('Testing...')
 	const numOutputs = biases[biases.length - 1].length
 	var totalCost = 0
@@ -128,7 +124,7 @@ const testCNN = (weights, biases, testingSet) => {
 		const actual = Object.keys(ex)[0]
 
 		// get the activations after forward propagation
-		const output = runCNN(weights, biases, ex[actual])
+		const output = runANN(weights, biases, ex[actual])
 
 		// get the result
 		const result = maxActivation(output[output.length - 1])
@@ -154,10 +150,10 @@ const testCNN = (weights, biases, testingSet) => {
 
 const spread = 1.125
 /**
- * Generates a CNN with the given layer structure with random weights and biases
+ * Generates an ANN with the given layer structure with random weights and biases
  * @param {[Number]} layers Numbers of neurons in each layer
  */
-const CNN = layers => {
+const ANN = layers => {
 	if (!layers) layers = []
 	var weights = []
 	var biases = []
@@ -188,7 +184,7 @@ const CNN = layers => {
 		weights: weights,
 		biases: biases,
 		calculate: function(activations) {
-			return runCNN(this.weights, this.biases, activations)
+			return runANN(this.weights, this.biases, activations)
 		},
 		train: function(trainingSet, epochs, testingSet) {
 			var learnRate = 0.08
@@ -196,13 +192,13 @@ const CNN = layers => {
 				var now = Date.now()
 				console.log('Epoch ' + (i + 1) + '...')
 				shuffle(trainingSet)
-				trainCNN(this.weights, this.biases, trainingSet, learnRate)
+				trainANN(this.weights, this.biases, trainingSet, learnRate)
 				console.log(
 					'Epoch ' + (i + 1) + ' complete: ' + (Date.now() - now) / 1000 + 's'
 				)
 
 				shuffle(testingSet)
-				const testResult = testCNN(this.weights, this.biases, testingSet)
+				const testResult = testANN(this.weights, this.biases, testingSet)
 				console.log(testResult)
 
 				if (testResult.correct > 8800)
@@ -212,7 +208,7 @@ const CNN = layers => {
 			}
 		},
 		test: function(testingSet) {
-			return testCNN(this.weights, this.biases, testingSet)
+			return testANN(this.weights, this.biases, testingSet)
 		},
 		save: function(name) {
 			fs.writeFile(
@@ -238,4 +234,4 @@ const CNN = layers => {
 	}
 }
 
-module.exports = CNN
+module.exports = ANN
