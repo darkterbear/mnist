@@ -1,32 +1,18 @@
-const ANN = require('./ann')
+const CNN = require('./cnn')
 const MNIST = require('./mnist/mnist')
-const parsePNG = require('./pngparser')
 
-// IMPORT
-var nn = ANN()
+var nn = CNN()
 
-// nn.open(__dirname + '/models/9071-0.1501.json')
+// nn.open(__dirname + '/models/8797-0.0774.json')
 
-// TRAIN
-var nn = ANN([784, 16, 16, 10])
+var nn = CNN([784, 16, 16, 10])
 
-nn.train(MNIST.trainingSet, 1000, MNIST.testSet)
+nn.train(MNIST.trainingSet, 200, MNIST.testSet)
 
-// TEST
 const testResults = nn.test(MNIST.testSet)
 
+if (testResults.correct > 8800) {
+	nn.save(testResults.correct + '-' + testResults.avgCost.toFixed(4))
+}
+
 console.log(testResults)
-
-// CALCULATE SINGLE
-// nn.run(MNIST.testSet[0])
-
-// CALCULATE FROM FILE
-// parsePNG(__dirname + '/images/6.png', pixels => {
-// 	//console.log(JSON.stringify(MNIST.testSet[0]))
-
-// 	const obj = {}
-// 	obj['6'] = pixels
-
-// 	//console.log(JSON.stringify(obj))
-// 	nn.run(obj)
-// })
