@@ -11,8 +11,4 @@ nn.train(MNIST.trainingSet, 200, MNIST.testSet)
 
 const testResults = nn.test(MNIST.testSet)
 
-if (testResults.correct > 8800) {
-	nn.save(testResults.correct + '-' + testResults.avgCost.toFixed(4))
-}
-
 console.log(testResults)

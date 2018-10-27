@@ -1,12 +1,5 @@
 const fs = require('fs')
-
-const shuffle = a => {
-	for (let i = a.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1))
-		;[a[i], a[j]] = [a[j], a[i]]
-	}
-	return a
-}
+const utils = require('../utils')
 
 const parseFile = (images, labels, numImages) => {
 	var dataFileBuffer = fs.readFileSync(__dirname + images)
@@ -37,14 +30,14 @@ var trainingPixelValues = parseFile(
 	60000
 )
 
-shuffle(trainingPixelValues)
+utils.shuffle(trainingPixelValues)
 
 var testingPixelValues = parseFile(
 	'/t10k-images-idx3-ubyte',
 	'/t10k-labels-idx1-ubyte',
 	10000
 )
-shuffle(testingPixelValues)
+utils.shuffle(testingPixelValues)
 
 module.exports = {
 	trainingSet: trainingPixelValues,

@@ -1,54 +1,48 @@
-const backprop = (activations, expected, weights, biases, layer, learnRate) => {
-	var thisWeights = weights[layer - 1]
-	var thisBiases = biases[layer - 1]
+const utils = require('./utils')
 
-	var thisActivations = activations[layer]
-	var prevActivations = activations[layer - 1]
+// TODO: don't use these, slows down by about a second by repeated bloating callstack
+const dS = utils.dSigmoid
+const dC = utils.dCost
 
-	thisWeights.forEach((weightColumn, k) => {
-		weightColumn.forEach((weight, j) => {
-			const gradient =
-				prevActivations[k] *
-				(thisActivations[j] * (1 - thisActivations[j])) *
-				2 *
-				(thisActivations[j] - expected[j])
+/**
+ *
+ * @param {Matrix} a Activations of the entire neural network
+ * @param {Vector} e Expected activations of this current layer
+ * @param {[Matrix]} weights Weights of the network
+ * @param {[Vector]} biases Biases of the network
+ * @param {Number} l Layer of the network
+ * @param {Number} eta Learning rate
+ */
+const backprop = (a, e, weights, biases, l, eta) => {
+	var w = weights[l - 1]
+	var b = biases[l - 1]
 
-			weights[layer - 1][k][j] -= gradient * learnRate
+	var rA = a[l]
+	var lA = a[l - 1]
+
+	w.forEach((wC, k) => {
+		wC.forEach((_, j) => {
+			const g = lA[k] * dS(rA[j]) * dC(rA[j], e[j])
+
+			w[k][j] -= g * eta
 		})
 	})
 
-	thisBiases.forEach((bias, j) => {
-		const gradient =
-			thisActivations[j] *
-			(1 - thisActivations[j]) *
-			2 *
-			(thisActivations[j] - expected[j])
-
-		biases[layer - 1][j] -= gradient * learnRate
+	b.forEach((_, j) => {
+		const g = dS(rA[j]) * dC(rA[j], e[j])
+		b[j] -= g * eta
 	})
 
-	var nextLayerExpected = prevActivations.slice()
-	prevActivations.forEach((prevActivation, k) => {
-		var gradient = 0
-		for (var j = 0; j < thisBiases.length; j++) {
-			gradient +=
-				thisWeights[k][j] *
-				(thisActivations[j] * (1 - thisActivations[j])) *
-				2 *
-				(thisActivations[j] - expected[j])
+	var nextA = lA.slice()
+	lA.forEach((_, k) => {
+		var g = 0
+		for (var j = 0; j < b.length; j++) {
+			g += w[k][j] * dS(rA[j]) * dC(rA[j], e[j])
 		}
-		nextLayerExpected[k] -= gradient * learnRate
+		nextA[k] -= g * eta
 	})
 
-	if (layer > 1)
-		backprop(
-			activations,
-			nextLayerExpected,
-			weights,
-			biases,
-			layer - 1,
-			learnRate
-		)
+	if (l > 1) backprop(a, nextA, weights, biases, l - 1, eta)
 }
 
 module.exports = backprop

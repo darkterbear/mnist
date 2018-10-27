@@ -1,81 +1,32 @@
-var fs = require('fs')
-
-const sigmoid = x => {
-	return 1 / (1 + Math.E ** -x)
-}
-
-function shuffle(a) {
-	for (let i = a.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1))
-		;[a[i], a[j]] = [a[j], a[i]]
-	}
-	return a
-}
+const fs = require('fs')
+const utils = require('./utils')
 
 const backprop = require('./backprop')
 
-/**
- * Calculates the activations of the next layer in forward propogation (recursive)
- * @param {[Matrix]} weights NN weight matrices
- * @param {[Vector]} biases NN bias vectors
- * @param {Vector} activations Input activations
- * @param {Number} currentLayer Forward propogation layer progress
- */
-const runANN = (weights, biases, activations, currentLayer = 0) => {
-	// if this is the output layer, return the activations
-	if (currentLayer >= weights.length) {
-		return [activations]
+const feedForward = (w, b, i) => {
+	var a = [i]
+
+	for (var l = 0; l < b.length; l++) {
+		const left = a[l]
+		var right = []
+
+		for (var r = 0; r < w[l][0].length; r++) {
+			var sum = 0
+			for (var c = 0; c < w[l].length; c++) {
+				sum += w[l][c][r] * left[c]
+			}
+			right.push(utils.sigmoid(sum + b[l][r]))
+		}
+		a.push(right)
 	}
 
-	// get the weights and biases relevant to the connections between this layer and the next
-	const weightMatrix = weights[currentLayer]
-	const biasVector = biases[currentLayer]
-
-	// calculate the next layer's activations
-	var newActivations = []
-	for (var r = 0; r < weightMatrix[0].length; r++) {
-		var sum = 0
-		for (var c = 0; c < weightMatrix.length; c++) {
-			sum += weightMatrix[c][r] * activations[c]
-		}
-		newActivations.push(sigmoid(sum + biasVector[r]))
-	}
-
-	// recursively propogate forward
-	const feedForward = runANN(weights, biases, newActivations, currentLayer + 1)
-
-	// combine the result activations
-	const cumulativeActivations = [activations]
-	feedForward.forEach(vector => {
-		cumulativeActivations.splice(cumulativeActivations.length, 0, vector)
-	})
-
-	return cumulativeActivations
+	return a
 }
 
-/**
- * Returns the index with the highest activation
- * @param {Vector} activations Activations of the output layer
- */
-const maxActivation = activations => {
-	var maxIndex = 0
-	var max = Number.MIN_SAFE_INTEGER
-
-	activations.forEach((activation, index) => {
-		if (activation > max) {
-			max = activation
-			maxIndex = index
-		}
-	})
-
-	return maxIndex
+const maxActivation = a => {
+	return a.reduce((p, c, i) => (c > a[p] ? i : p), 0)
 }
 
-/**
- * Calculates the cost of a forward propogation of a neural network
- * @param {Vector} v1 Neural network output activations
- * @param {Vector} v2 Expected activations
- */
 const calcCost = (v1, v2) => {
 	var sum = 0
 
@@ -83,38 +34,26 @@ const calcCost = (v1, v2) => {
 		sum += (v1[i] - v2[i]) ** 2
 	}
 
-	return Math.sqrt(sum / (v1.length - 1))
+	return sum
 }
 
-/**
- *
- * @param {[Matrix]} weights NN weights
- * @param {[Vector]} biases NN biases
- * @param {[Test]} trainingSet Tests used for training
- */
-const trainANN = (weights, biases, trainingSet, learnRate) => {
-	trainingSet.forEach((ex, index) => {
-		const actual = Object.keys(ex)[0]
-		const output = runANN(weights, biases, ex[actual])
+const trainANN = (w, b, trainingSet, eta) => {
+	trainingSet.forEach(ex => {
+		const correct = Object.keys(ex)[0]
+		const output = feedForward(w, b, ex[correct])
 
 		// create the expected output
-		var expected = []
-		for (var i = 0; i < biases[biases.length - 1].length; i++) {
-			expected.push(0)
-		}
-		expected[actual] = 1
+		var expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		// for (var i = 0; i < b[b.length - 1].length; i++) {
+		// 	expected.push(0)
+		// }
+		expected[correct] = 1
 
 		// backprop to nudge weights and biases
-		backprop(output, expected, weights, biases, biases.length, learnRate)
+		backprop(output, expected, w, b, b.length, eta)
 	})
 }
 
-/**
- * Tests the neural network and generates an average cost
- * @param {[Matrix]} weights Array of weight matrices
- * @param {[Vector]} biases Array of bias vectors
- * @param {[Test]} testingSet Array of tests
- */
 const testANN = (weights, biases, testingSet) => {
 	console.log('Testing...')
 	const numOutputs = biases[biases.length - 1].length
@@ -124,7 +63,7 @@ const testANN = (weights, biases, testingSet) => {
 		const actual = Object.keys(ex)[0]
 
 		// get the activations after forward propagation
-		const output = runANN(weights, biases, ex[actual])
+		const output = feedForward(weights, biases, ex[actual])
 
 		// get the result
 		const result = maxActivation(output[output.length - 1])
@@ -149,10 +88,6 @@ const testANN = (weights, biases, testingSet) => {
 }
 
 const spread = 1.125
-/**
- * Generates an ANN with the given layer structure with random weights and biases
- * @param {[Number]} layers Numbers of neurons in each layer
- */
 const ANN = layers => {
 	if (!layers) layers = []
 	var weights = []
@@ -184,24 +119,24 @@ const ANN = layers => {
 		weights: weights,
 		biases: biases,
 		calculate: function(activations) {
-			return runANN(this.weights, this.biases, activations)
+			return feedForward(this.weights, this.biases, activations)
 		},
 		train: function(trainingSet, epochs, testingSet) {
 			var learnRate = 0.08
 			for (var i = 0; i < epochs; i++) {
 				var now = Date.now()
 				console.log('Epoch ' + (i + 1) + '...')
-				shuffle(trainingSet)
+				utils.shuffle(trainingSet)
 				trainANN(this.weights, this.biases, trainingSet, learnRate)
 				console.log(
 					'Epoch ' + (i + 1) + ' complete: ' + (Date.now() - now) / 1000 + 's'
 				)
 
-				shuffle(testingSet)
+				utils.shuffle(testingSet)
 				const testResult = testANN(this.weights, this.biases, testingSet)
 				console.log(testResult)
 
-				if (testResult.correct > 8800)
+				if (testResult.correct > 9300)
 					this.save(testResult.correct + '-' + testResult.avgCost)
 
 				learnRate = testResult.avgCost / 3
