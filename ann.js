@@ -83,16 +83,9 @@ const calcCost = (v1, v2) => {
 }
 
 const saveANN = (w, b, name) => {
-	fs.writeFile(
+	fs.writeFileSync(
 		__dirname + '/models/' + name + '.json',
-		JSON.stringify({ weights: w, biases: b }),
-		function(err) {
-			if (err) {
-				return console.log(err)
-			}
-
-			console.log('Model Saved')
-		}
+		JSON.stringify({ weights: w, biases: b })
 	)
 }
 
@@ -131,8 +124,8 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 		)
 
 		// save if good
-		if (testResult.correct > 9300) {
-			saveANN(w, b, testResult.correct + '-' + testResult.avgCost)
+		if (testResult.correct / testingSet.length > 0.9) {
+			saveANN(w, b, testResult.correct + '-' + testResult.avgCost.toFixed(4))
 		}
 	}
 }
