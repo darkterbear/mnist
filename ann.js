@@ -95,7 +95,7 @@ const trainANN = (
 	trainingSet,
 	testingSet,
 	epochs,
-	initalRate,
+	initialRate,
 	decay,
 	saveThreshold
 ) => {
