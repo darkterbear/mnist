@@ -103,6 +103,8 @@ const trainANN = (
 
 	var eta = initialRate
 
+	var trainResults = []
+
 	for (var i = 1; i <= epochs; i++) {
 		const start = Date.now()
 		console.log('Epoch ' + i + '...')
@@ -129,15 +131,23 @@ const trainANN = (
 				's\t' +
 				((testResult.correct / testingSet.length) * 100).toFixed(2) +
 				'%\t' +
-				testResult.avgCost.toFixed(5) +
+				testResult.avgCost.toFixed(4) +
 				'\n'
 		)
+
+		trainResults.push({
+			duration: ((end - start) / 1000).toFixed(2),
+			accuracy: ((testResult.correct / testingSet.length) * 100).toFixed(2),
+			avgCost: testResult.avgCost.toFixed(4)
+		})
 
 		// save if good
 		if (testResult.correct / testingSet.length > saveThreshold) {
 			saveANN(w, b, testResult.correct + '-' + testResult.avgCost.toFixed(4))
 		}
 	}
+
+	return trainResults
 }
 
 const testANN = (w, b, testingSet) => {
@@ -210,7 +220,7 @@ const ANN = layers => {
 			learnRateDecay = -0.1,
 			saveThreshold = 0.95
 		) {
-			trainANN(
+			return trainANN(
 				this.weights,
 				this.biases,
 				trainingSet,
