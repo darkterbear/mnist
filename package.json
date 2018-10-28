@@ -1,24 +1,28 @@
 {
-  "name": "mnist",
-  "version": "1.0.0",
-  "description": "Personal project to build a neural network (from scratch) to recognize MNIST handwritten digits. Terrance Li.",
-  "main": "digits.js",
-  "scripts": {
-    "test": "node digits.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/darkterbear/mnist.git"
-  },
-  "keywords": [
-    "neural-network",
-    "machine-learning",
-    "mnist"
-  ],
-  "author": "Terrance Li",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/darkterbear/mnist/issues"
-  },
-  "homepage": "https://github.com/darkterbear/mnist#readme"
+	"name": "mnist",
+	"version": "1.0.0",
+	"description": "Personal project to build a neural network (from scratch) to recognize MNIST handwritten digits. Terrance Li.",
+	"main": "digits.js",
+	"scripts": {
+		"start": "node digits.js",
+		"sweep": "node hypersweep.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/darkterbear/mnist.git"
+	},
+	"keywords": [
+		"neural-network",
+		"machine-learning",
+		"mnist"
+	],
+	"author": "Terrance Li",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/darkterbear/mnist/issues"
+	},
+	"homepage": "https://github.com/darkterbear/mnist#readme",
+	"dependencies": {
+		"gpu.js": "^1.9.1"
+	}
 }
