@@ -8,17 +8,23 @@ const args = process.argv.slice()
 
 const intialLearnRate = parseFloat(args[2])
 const learnRateDecay = parseFloat(args[3])
+const trial = parseFloat(args[4])
 
 const trainResults = nn.train(
 	MNIST.trainingSet,
 	MNIST.testSet,
-	1,
+	10,
 	intialLearnRate,
 	learnRateDecay,
 	0.96
 )
 
 fs.writeFileSync(
-	__dirname + '/logs/' + intialLearnRate + learnRateDecay + '.json',
+	__dirname +
+		'/logs/' +
+		intialLearnRate.toFixed(2) +
+		learnRateDecay.toFixed(2) +
+		trial +
+		'.json',
 	JSON.stringify(trainResults)
 )
