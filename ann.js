@@ -91,7 +91,10 @@ const saveANN = (w, b, name) => {
 
 const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
-	var eta = 0.1
+
+	const initialRate = 0.1
+	const decay = -0.1
+	var eta = initialRate
 
 	for (var i = 1; i <= epochs; i++) {
 		const start = Date.now()
@@ -108,7 +111,7 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 		const testResult = testANN(w, b, testingSet)
 
 		// update learnrate
-		eta = testResult.avgCost / 3
+		eta = initialRate * Math.E ** (decay * i)
 
 		// log
 		console.log(
