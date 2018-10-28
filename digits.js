@@ -6,7 +6,7 @@ const MNIST = require('./mnist/mnist')
 
 var nn = ANN([784, 16, 16, 10])
 
-nn.train(MNIST.trainingSet, 200, MNIST.testSet)
+nn.train(MNIST.trainingSet, MNIST.testSet)
 
 const testResults = nn.test(MNIST.testSet)
 

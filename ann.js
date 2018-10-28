@@ -89,11 +89,18 @@ const saveANN = (w, b, name) => {
 	)
 }
 
-const trainANN = (w, b, trainingSet, testingSet, epochs) => {
+const trainANN = (
+	w,
+	b,
+	trainingSet,
+	testingSet,
+	epochs,
+	initalRate,
+	decay,
+	saveThreshold
+) => {
 	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
 
-	const initialRate = 0.1
-	const decay = -0.1
 	var eta = initialRate
 
 	for (var i = 1; i <= epochs; i++) {
@@ -127,7 +134,7 @@ const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 		)
 
 		// save if good
-		if (testResult.correct / testingSet.length > 0.9) {
+		if (testResult.correct / testingSet.length > saveThreshold) {
 			saveANN(w, b, testResult.correct + '-' + testResult.avgCost.toFixed(4))
 		}
 	}
@@ -195,8 +202,24 @@ const ANN = layers => {
 			const res = feedForward(this.weights, this.biases, a)
 			return maxActivation(res[res.length - 1])
 		},
-		train: function(trainingSet, epochs, testingSet) {
-			trainANN(this.weights, this.biases, trainingSet, testingSet, epochs)
+		train: function(
+			trainingSet,
+			testingSet,
+			epochs = 20,
+			initialLearnRate = 0.1,
+			learnRateDecay = -0.1,
+			saveThreshold = 0.95
+		) {
+			trainANN(
+				this.weights,
+				this.biases,
+				trainingSet,
+				testingSet,
+				epochs,
+				initialLearnRate,
+				learnRateDecay,
+				saveThreshold
+			)
 		},
 		test: function(testingSet) {
 			return testANN(this.weights, this.biases, testingSet)
