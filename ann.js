@@ -91,7 +91,7 @@ const saveANN = (w, b, name) => {
 
 const trainANN = (w, b, trainingSet, testingSet, epochs) => {
 	const emptyOut = Array.from({ length: b[b.length - 1].length }, () => 0)
-	var eta = 0.08
+	var eta = 0.1
 
 	for (var i = 1; i <= epochs; i++) {
 		const start = Date.now()
